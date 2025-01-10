@@ -1,4 +1,4 @@
-﻿namespace Vector
+﻿namespace VectorLib
 {
     public class Vector
     {
