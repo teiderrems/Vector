@@ -12,7 +12,7 @@
 	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	<Description>library to facilitate the manipulation of vectors, in this case the following operations: addition,
 				subtraction, multiplication by a constant, scalar product, etc.</Description>
-	<RepositoryUrl></RepositoryUrl>
+	<RepositoryUrl>https://github.com/teiderrems/Vector</RepositoryUrl>
   </PropertyGroup>
 
 </Project>

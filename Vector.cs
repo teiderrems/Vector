@@ -1103,5 +1103,57 @@
             }
             return new Vector(result);
         }
+
+        public double First()
+        {
+            return array[0];
+        }
+
+        public double Last() { 
+            return array[Length-1];
+        }
+
+        public Vector Where(bool[] index,int T=1)
+        {
+            List<double> result =[];
+            if (index.Length!=Length)
+            {
+                throw new ArgumentException("index must be the same size as the current vector");
+            }
+            if (T > 1 || Length >= 1000)
+            {
+                T = T == 1 ? Environment.ProcessorCount : T;
+                Action<int, int> func = (t, T) =>
+                {
+                    for (int i = t; i < Length; i += T)
+                    {
+                        if (index[i])
+                        {
+                            result.Add(array[i]);
+                        }
+                    }
+                };
+                List<Thread> threads = new();
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(() => func(t, T));
+                    thread.Start();
+                    threads.Add(thread);
+                }
+                Parallel.ForEach(threads, thread => thread.Join());
+            }
+            else
+            {
+                for (int i = 0; i < Length; i++)
+                {
+                    if (index[i])
+                    {
+                        result.Add(array[i]);
+                    }
+                }
+            }
+            return new Vector(result);
+
+        }
     }
 }
