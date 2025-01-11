@@ -1,5 +1,12 @@
 ﻿namespace VectorLib
 {
+
+    class Input(int t = 0, int T = 0)
+    {
+        public int t = t;
+        public int T = T;
+    }
+
     public class Vector
     {
 
@@ -44,32 +51,41 @@
             }
         }
 
-        public Vector this[bool[] index,int T=1]
+        public Vector this[bool[] index, int T = 1]
         {
             get
             {
                 List<double> result = [];
                 if (T > 1 || Length >= 1000)
                 {
+                    Mutex m = new();
                     T = T == 1 ? Environment.ProcessorCount : T;
-                    Action<int, int> func = (t, T) =>
+                    void F(object? obj)
                     {
-                        for (int i = t; i < Length; i += T)
+                        Input input = (Input)obj!;
+                        for (int i = input.t; i < Length; i += input.T)
                         {
                             if (index[i])
                             {
-                                result.Add(array[i]);
+                                if (m.WaitOne())
+                                {
+                                    result.Add(array[i]);
+                                    m.ReleaseMutex();
+                                }
                             }
                         }
-                    };
-                    List<Thread> threads = new();
+                    }
+                    List<Thread> threads = [];
                     for (int t = 0; t < T; t++)
                     {
-                        Thread thread = new(() => func(t, T));
-                        thread.Start();
+                        Thread thread = new(start: F);
+                        thread.Start(new Input(t, T));
                         threads.Add(thread);
                     }
-                    Parallel.ForEach(threads, thread => thread.Join());
+                    threads.ForEach(thread => thread.Join());
+                    Thread.Sleep(5000);
+                    m.Dispose();
+                    return new Vector(result);
                 }
                 else
                 {
@@ -80,8 +96,9 @@
                             result.Add(array[i]);
                         }
                     }
+                    return new Vector(result);
                 }
-                return new Vector(result);
+
             }
         }
 
@@ -90,31 +107,40 @@
             get
             {
                 List<double> result = [];
-                if (T > 1 || end-start>=1000)
+                if (T > 1 || end - start >= 1000)
                 {
+                    Mutex m = new();
                     T = T == 1 ? Environment.ProcessorCount : T;
-                    Action<int, int> func = (t, T) =>
+                    void F(object? obj)
                     {
-                        for (int i = t; i < end; i += T)
+                        Input input = (Input)obj!;
+                        for (int i = input.t; i < end; i += input.T)
                         {
                             if (i < Length)
                             {
-                                result.Add(array[i]);
+                                if (m.WaitOne())
+                                {
+                                    result.Add(array[i]);
+                                    m.ReleaseMutex();
+                                }
                             }
                             else
                             {
                                 throw new System.ArgumentException("Index out of range");
                             }
                         }
-                    };
-                    List<Thread> threads = new();
+                    }
+                    List<Thread> threads = [];
                     for (int t = 0; t < T; t++)
                     {
-                        Thread thread = new(() => func(t, T));
-                        thread.Start();
+                        Thread thread = new(start: F);
+                        thread.Start(new Input(t, T));
                         threads.Add(thread);
                     }
-                    Parallel.ForEach(threads, thread => thread.Join());
+                    threads.ForEach(thread => thread.Join());
+                    Thread.Sleep(5000);
+                    m.Dispose();
+                    return new Vector(result);
                 }
                 else
                 {
@@ -129,38 +155,44 @@
                             throw new System.ArgumentException("Index out of range");
                         }
                     }
+                    return new Vector(result);
                 }
-                return new Vector(result);
             }
 
             set
             {
-                if (value.Length > start + end && value.Length<=array.Length)
+                if (value.Length > start + end && value.Length <= array.Length)
                 {
                     if (T > 1)
                     {
-                        Action<int, int> func = (t, T) =>
+                        Mutex m = new();
+                        void func(int t, int T)
                         {
                             for (int i = t + start; i < end; i += T)
                             {
                                 if (i < Length)
                                 {
-                                    array[i] = value[i - start];
+                                    if (m.WaitOne())
+                                    {
+                                        array[i] = value[i - start];
+                                        m.ReleaseMutex();
+                                    }
                                 }
                                 else
                                 {
                                     throw new System.ArgumentException("Index out of range");
                                 }
                             }
-                        };
-                        List<Thread> threads = new();
+                        }
+                        List<Thread> threads = [];
                         for (int t = 0; t < T; t++)
                         {
                             Thread thread = new(() => func(t, T));
                             thread.Start();
                             threads.Add(thread);
                         }
-                        Parallel.ForEach(threads, thread => thread.Join());
+                        threads.ForEach(t => t.Join());
+                        m.Dispose();
                     }
                     else
                     {
@@ -189,30 +221,39 @@
             get
             {
                 List<double> result = [];
-                if (T > 1)
+                if (T > 1 || Length >= 1000)
                 {
-                    Action<int, int> func = (t, T) =>
+                    T = T == 1 ? Environment.ProcessorCount : T;
+                    Mutex m = new();
+                    void F(object? obj)
                     {
-                        for (int i = t; i < index.Length; i += T)
+                        Input input = (Input)obj!;
+                        for (int i = input.t; i < index.Length; i += input.T)
                         {
                             if (index[i] < Length)
                             {
-                                result.Add(array[index[i]]);
+                                if (m.WaitOne())
+                                {
+                                    result.Add(array[index[i]]);
+                                    m.ReleaseMutex();
+                                }
                             }
                             else
                             {
                                 throw new System.ArgumentException("Index out of range");
                             }
                         }
-                    };
-                    List<Thread> threads = new();
+                    }
+                    List<Thread> threads = [];
                     for (int t = 0; t < T; t++)
                     {
-                        Thread thread = new(() => func(t, T));
-                        thread.Start();
+                        Thread thread = new(start: F);
+                        thread.Start(new Input(t, T));
                         threads.Add(thread);
                     }
-                    Parallel.ForEach(threads, thread => thread.Join());
+                    threads.ForEach(thread => thread.Join());
+                    Thread.Sleep(5000);
+                    m.Dispose();
                 }
                 else
                 {
@@ -236,11 +277,42 @@
         public static Vector operator +(Vector v1, double scalar)
         {
             double[] result = new double[v1.Length];
-            for (int i = 0; i < v1.Length; i++)
+            if (v1.Length >= 1000)
             {
-                result[i] = v1[i] + scalar;
+                Mutex m = new();
+                int T = Environment.ProcessorCount;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result[i] = v1[i] + scalar;
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
-            return new Vector(result);
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    result[i] = v1[i] + scalar;
+                }
+                return new Vector(result);
+            }
         }
 
         public static Vector operator +(double scalar, Vector v1)
@@ -251,44 +323,115 @@
         public static Vector operator -(Vector v1, double scalar)
         {
             double[] result = new double[v1.Length];
-            for (int i = 0; i < v1.Length; i++)
+            if (v1.Length >= 1000)
             {
-                result[i] = v1[i] - scalar;
+                Mutex m = new();
+                int T = Environment.ProcessorCount;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result[i] = v1[i] - scalar;
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
-            return new Vector(result);
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    result[i] = v1[i] - scalar;
+                }
+                return new Vector(result);
+            }
         }
 
         public static Vector operator -(double scalar, Vector v1)
         {
             double[] result = new double[v1.Length];
-            for (int i = 0; i < v1.Length; i++)
+            if (v1.Length >= 1000)
             {
-                result[i] = scalar - v1[i];
-            }
-            return new Vector(result);
-        }
-
-        public static Vector Ones(int n,int T=1)
-        {
-            double[] result = new double[n];
-            if (T>1 || n>=1000)
-            {
-                T = T == 1 ? Environment.ProcessorCount : T;
-                Action<int, int> func = (t, T) =>
+                Mutex m = new();
+                int T = Environment.ProcessorCount;
+                void F(object? obj)
                 {
-                    for (int i = t; i < n; i += T)
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
                     {
-                        result[i] = 1;
+                        if (m.WaitOne())
+                        {
+                            result[i] = scalar - v1[i];
+                            m.ReleaseMutex();
+                        }
                     }
-                };
-                List<Thread> threads = new List<Thread>();
+                }
+                List<Thread> threads = [];
                 for (int t = 0; t < T; t++)
                 {
-                    Thread thread = new Thread(() => func(t, T));
-                    thread.Start();
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
                     threads.Add(thread);
                 }
-                Parallel.ForEach(threads, thread => thread.Join());
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
+            }
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    result[i] = scalar - v1[i];
+                }
+                return new Vector(result);
+            }
+        }
+
+        public static Vector Ones(int n, int T = 1)
+        {
+            double[] result = new double[n];
+            if (T > 1 || n >= 1000)
+            {
+                Mutex m = new();
+                T = T == 1 ? Environment.ProcessorCount : T;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < n; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result[i] = 1;
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
             else
             {
@@ -296,8 +439,8 @@
                 {
                     result[i] = 1;
                 }
+                return new Vector(result);
             }
-            return new Vector(result);
         }
 
         public static Vector Zeros(int n)
@@ -318,11 +461,42 @@
                 throw new System.ArgumentException("Vectors must have the same length");
             }
             double[] result = new double[v1.Length];
-            for (int i = 0; i < v1.Length; i++)
+            if (v1.Length >= 1000)
             {
-                result[i] = v1[i] + v2[i];
+                Mutex m = new();
+                int T = Environment.ProcessorCount;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result[i] = v1[i] + v2[i];
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
-            return new Vector(result);
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    result[i] = v1[i] + v2[i];
+                }
+                return new Vector(result);
+            }
         }
 
         public static Vector operator -(Vector v1, Vector v2)
@@ -332,21 +506,83 @@
                 throw new System.ArgumentException("Vectors must have the same length");
             }
             double[] result = new double[v1.Length];
-            for (int i = 0; i < v1.Length; i++)
+            if (v1.Length >= 1000)
             {
-                result[i] = v1[i] - v2[i];
+                Mutex m = new();
+                int T = Environment.ProcessorCount;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result[i] = v1[i] - v2[i];
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
-            return new Vector(result);
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    result[i] = v1[i] - v2[i];
+                }
+                return new Vector(result);
+            }
         }
 
         public static Vector operator *(Vector v1, double scalar)
         {
             double[] result = new double[v1.Length];
-            for (int i = 0; i < v1.Length; i++)
+            if (v1.Length >= 1000)
             {
-                result[i] = v1[i] * scalar;
+                Mutex m = new();
+                int T = Environment.ProcessorCount;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result[i] = v1[i] * scalar;
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
-            return new Vector(result);
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    result[i] = v1[i] * scalar;
+                }
+                return new Vector(result);
+            }
         }
 
         public Vector(List<double> list)
@@ -366,81 +602,327 @@
                 throw new System.ArgumentException("Vectors must have the same length");
             }
             double result = 0;
-            for (int i = 0; i < v1.Length; i++)
+            if (v1.Length >= 1000)
             {
-                result += v1[i] * v2[i];
+                Mutex m = new();
+                int T = Environment.ProcessorCount;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result += v1[i] * v2[i];
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return result;
             }
-            return result;
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    result += v1[i] * v2[i];
+                }
+                return result;
+            }
         }
 
         public static Vector operator /(Vector v1, double scalar)
         {
             double[] result = new double[v1.Length];
-            for (int i = 0; i < v1.Length; i++)
+            if (v1.Length >= 1000)
             {
-                result[i] = v1[i] / scalar;
+                Mutex m = new();
+                int T = Environment.ProcessorCount;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result[i] = v1[i] / scalar;
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
-            return new Vector(result);
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    result[i] = v1[i] / scalar;
+                }
+                return new Vector(result);
+            }
         }
 
         public static bool[] operator >(Vector v1, double scalar)
         {
             bool[] result = new bool[v1.Length];
-            for (int i = 0; i < v1.Length; i++)
+            if (v1.Length >= 1000)
             {
-                result[i] = v1[i] > scalar;
+                Mutex m = new();
+                int T = Environment.ProcessorCount;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result[i] = v1[i] > scalar;
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return result;
             }
-            return result;
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    result[i] = v1[i] > scalar;
+                }
+                return result;
+            }
         }
 
         public static bool[] operator <(Vector v1, double scalar)
         {
             bool[] result = new bool[v1.Length];
-            for (int i = 0; i < v1.Length; i++)
+            if (v1.Length >= 1000)
             {
-                result[i] = v1[i] < scalar;
+                Mutex m = new();
+                int T = Environment.ProcessorCount;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result[i] = v1[i] < scalar;
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return result;
             }
-            return result;
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    result[i] = v1[i] < scalar;
+                }
+                return result;
+            }
         }
 
         public static bool[] operator >=(Vector v1, double scalar)
         {
             bool[] result = new bool[v1.Length];
-            for (int i = 0; i < v1.Length; i++)
+
+            if (v1.Length >= 1000)
             {
-                result[i] = v1[i] >= scalar;
+                Mutex m = new();
+                int T = Environment.ProcessorCount;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result[i] = v1[i] >= scalar;
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return result;
             }
-            return result;
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    result[i] = v1[i] >= scalar;
+                }
+                return result;
+            }
         }
 
         public static bool[] operator <=(Vector v1, double scalar)
         {
             bool[] result = new bool[v1.Length];
-            for (int i = 0; i < v1.Length; i++)
+            if (v1.Length >= 1000)
             {
-                result[i] = v1[i] <= scalar;
+                Mutex m = new();
+                int T = Environment.ProcessorCount;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result[i] = v1[i] <= scalar;
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return result;
             }
-            return result;
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    result[i] = v1[i] <= scalar;
+                }
+                return result;
+            }
         }
 
         public static Vector operator /(double scalar, Vector v1)
         {
             double[] result = new double[v1.Length];
-            for (int i = 0; i < v1.Length; i++)
+            if (v1.Length >= 1000)
             {
-                result[i] = scalar / v1[i];
+                Mutex m = new();
+                int T = Environment.ProcessorCount;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result[i] = v1[i] / scalar;
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
-            return new Vector(result);
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    result[i] = scalar / v1[i];
+                }
+                return new Vector(result);
+            }
         }
 
         public static Vector operator -(Vector v1)
         {
             double[] result = new double[v1.Length];
-            for (int i = 0; i < v1.Length; i++)
+            if (v1.Length >= 1000)
             {
-                result[i] = -v1[i];
+                Mutex m = new();
+                int T = Environment.ProcessorCount;
+                void F(int t, int T)
+                {
+                    for (int i = t; i < v1.Length; i += T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result[i] = -v1[i];
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (var i = 0; i < T; i++)
+                {
+                    threads.Add(new Thread(() => F(i, T)));
+                    threads[i].Start();
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                return new Vector(result);
             }
-            return new Vector(result);
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    result[i] = -v1[i];
+                }
+                return new Vector(result);
+            }
         }
 
         public static bool operator ==(Vector v1, Vector v2)
@@ -459,12 +941,108 @@
             return true;
         }
 
+        public static Vector operator ==(Vector v1, double value)
+        {
+
+            List<double> result = [];
+            if (v1.Length >= 1000)
+            {
+                Mutex m = new();
+                var T = Environment.ProcessorCount;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
+                    {
+                        if (v1[i] == value)
+                        {
+                            if (m.WaitOne())
+                            {
+                                result.Add(v1[i]);
+                                m.ReleaseMutex();
+                            }
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
+            }
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    if (v1[i] == value)
+                    {
+                        result.Add(v1[i]);
+                    }
+                }
+                return new Vector(result);
+            }
+        }
+
+        public static Vector operator !=(Vector v1, double value)
+        {
+            List<double> result = [];
+
+            if (v1.Length >= 1000)
+            {
+                Mutex m = new();
+                var T = Environment.ProcessorCount;
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < v1.Length; i += input.T)
+                    {
+                        if (v1[i] != value)
+                        {
+                            if (m.WaitOne())
+                            {
+                                result.Add(v1[i]);
+                                m.ReleaseMutex();
+                            }
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
+            }
+            else
+            {
+                for (int i = 0; i < v1.Length; i++)
+                {
+                    if (v1[i] != value)
+                    {
+                        result.Add(v1[i]);
+                    }
+                }
+                return new Vector(result);
+            }
+        }
+
         public static bool operator !=(Vector v1, Vector v2)
         {
             return !(v1 == v2);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj == null || GetType() != obj.GetType())
             {
@@ -489,33 +1067,40 @@
                     result += ", ";
                 }
             }
-            result.Remove(result.Length - 1,1);
             result += "]";
             return result;
         }
 
-        public double Norm(int T=1)
+        public double Norm(int T = 1)
         {
             Mutex m = new();
             double result = 0;
             if (T > 1 || Length >= 1000)
             {
                 T = T == 1 ? Environment.ProcessorCount : T;
-                Action<int,int> func = (t,T) => {
-                    for (int i = t; i < Length; i+=T)
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < Length; i += input.T)
                     {
-                        m.WaitOne();
-                        result += array[i] * array[i];
-                        m.ReleaseMutex();
+                        if (m.WaitOne())
+                        {
+                            result += array[i] * array[i];
+                            m.ReleaseMutex();
+                        }
                     }
-                };
-                List<Thread> threads = new List<Thread>();
+                }
+                List<Thread> threads = [];
                 for (int t = 0; t < T; t++)
                 {
-                    Thread thread = new Thread(() => func(t, T));
-                    thread.Start();
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
                     threads.Add(thread);
                 }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return System.Math.Sqrt(result);
             }
             else
             {
@@ -523,11 +1108,11 @@
                 {
                     result += array[i] * array[i];
                 }
+                return System.Math.Sqrt(result);
             }
-            return System.Math.Sqrt(result);
         }
 
-        public Vector Normalize(int T=1)
+        public Vector Normalize(int T = 1)
         {
             return this / Norm(T);
         }
@@ -537,30 +1122,39 @@
             return v1 * v2;
         }
 
-        public Vector ArgWhere(bool[] index,int T=1)
+        public Vector ArgWhere(bool[] index, int T = 1)
         {
-            List<double> result = new List<double>();
+            List<double> result = [];
             if (T > 1 || Length >= 1000)
             {
+                Mutex m = new();
                 T = T == 1 ? Environment.ProcessorCount : T;
-                Action<int, int> func = (t, T) =>
+                void F(object? obj)
                 {
-                    for (int i = t; i < Length; i += T)
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < Length; i += input.T)
                     {
                         if (index[i])
                         {
-                            result.Add(i);
+                            if (m.WaitOne())
+                            {
+                                result.Add(i);
+                                m.ReleaseMutex();
+                            }
                         }
                     }
-                };
-                List<Thread> threads = new();
+                }
+                List<Thread> threads = [];
                 for (int t = 0; t < T; t++)
                 {
-                    Thread thread = new(() => func(t, T));
-                    thread.Start();
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
                     threads.Add(thread);
                 }
-                Parallel.ForEach(threads, thread => thread.Join());
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
             else
             {
@@ -571,8 +1165,8 @@
                         result.Add(i);
                     }
                 }
+                return new Vector(result);
             }
-            return new Vector(result);
         }
 
         public Vector Unique() { return new Vector(array.Distinct().ToArray()); }
@@ -584,7 +1178,7 @@
         public Vector Shuffle()
         {
             Random random = new();
-            return new Vector(array.OrderBy(x => random.Next()%Length).ToArray());
+            return new Vector(array.OrderBy(x => random.Next() % Length).ToArray());
         }
 
         public Vector Append(Vector v1)
@@ -596,48 +1190,178 @@
             return new Vector(array.Concat([scalar]).ToArray());
         }
 
-        public Vector Insert(int index, double scalar)
+        public Vector Insert(int index, double scalar, int T = 1)
         {
             List<double> result = [];
-            for (int i = 0; i < index; i++)
+            if (T > 1)
             {
-                result.Add(array[i]);
+                Mutex m = new();
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < index; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result.Add(array[i]);
+                            m.ReleaseMutex();
+                        }
+                    }
+                    if (m.WaitOne())
+                    {
+                        result.Add(scalar);
+                        m.ReleaseMutex();
+                    }
+                    input.t = 0;
+                    for (int i = index + input.t; i < Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result.Add(array[i]);
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
-            result.Add(scalar);
-            for (int i = index; i < Length; i++)
+            else
             {
-                result.Add(array[i]);
+                for (int i = 0; i < index; i++)
+                {
+                    result.Add(array[i]);
+                }
+                result.Add(scalar);
+                for (int i = index; i < Length; i++)
+                {
+                    result.Add(array[i]);
+                }
+                return new Vector(result);
             }
-            return new Vector(result);
         }
 
-        public Vector Insert(int index, Vector v1)
+        public Vector Insert(int index, Vector v1, int T = 1)
         {
             List<double> result = [];
-            for (int i = 0; i < index; i++)
+            if (T > 1)
             {
-                result.Add(array[i]);
+                Mutex m = new();
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < index; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result.Add(array[i]);
+                            m.ReleaseMutex();
+                        }
+                    }
+                    if (m.WaitOne())
+                    {
+                        result.AddRange(v1.array);
+                        m.ReleaseMutex();
+                    }
+                    input.t = 0;
+                    for (int i = index + input.t; i < Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result.Add(array[i]);
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
-            result.AddRange(v1.array);
-            for (int i = index; i < Length; i++)
+            else
             {
-                result.Add(array[i]);
+                for (int i = 0; i < index; i++)
+                {
+                    result.Add(array[i]);
+                }
+                result.AddRange(v1.array);
+                for (int i = index; i < Length; i++)
+                {
+                    result.Add(array[i]);
+                }
+                return new Vector(result);
             }
-            return new Vector(result);
         }
 
-        public Vector Remove(int index)
+        public Vector Remove(int index, int T = 1)
         {
             List<double> result = [];
-            for (int i = 0; i < index; i++)
+            if (T > 1 || Length >= 1000)
             {
-                result.Add(array[i]);
+                T = T == 1 ? Environment.ProcessorCount : T;
+                Mutex m = new();
+                void F(object? obj)
+                {
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < index; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result.Add(array[i]);
+                            m.ReleaseMutex();
+                        }
+                    }
+                    input.t = 0;
+                    for (int i = index + input.t + 1; i < Length; i += input.T)
+                    {
+                        if (m.WaitOne())
+                        {
+                            result.Add(array[i]);
+                            m.ReleaseMutex();
+                        }
+                    }
+                }
+                List<Thread> threads = [];
+                for (int t = 0; t < T; t++)
+                {
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
+                    threads.Add(thread);
+                }
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
-            for (int i = index + 1; i < Length; i++)
+            else
             {
-                result.Add(array[i]);
+                for (int i = 0; i < index; i++)
+                {
+                    result.Add(array[i]);
+                }
+                for (int i = index + 1; i < Length; i++)
+                {
+                    result.Add(array[i]);
+                }
+                return new Vector(result);
             }
-            return new Vector(result);
+
+
         }
 
         public Vector Remove(Vector v1)
@@ -657,26 +1381,32 @@
         {
             Mutex m = new();
             double result = 0;
-            if (T > 1 || Length>=1000)
+            if (T > 1 || Length >= 1000)
             {
-                T= T == 1 ? Environment.ProcessorCount : T;
-                Action<int, int> func = (t, T) =>
+                T = T == 1 ? Environment.ProcessorCount : T;
+                void F(object? obj)
                 {
-                    for (int i = t; i < Length; i += T)
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < Length; i += input.T)
                     {
-                        m.WaitOne();
-                        result += array[i];
-                        m.ReleaseMutex();
+                        if (m.WaitOne())
+                        {
+                            result += array[i];
+                            m.ReleaseMutex();
+                        }
                     }
-                };
-                List<Thread> threads = new List<Thread>();
+                }
+                List<Thread> threads = [];
                 for (int t = 0; t < T; t++)
                 {
-                    Thread thread = new Thread(() => func(t, T));
-                    thread.Start();
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
                     threads.Add(thread);
                 }
-                Parallel.ForEach(threads, thread => thread.Join());
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return result;
             }
             else
             {
@@ -684,8 +1414,8 @@
                 {
                     result += array[i];
                 }
+                return result;
             }
-            return result;
         }
 
         public double Mean(int T = 1)
@@ -699,26 +1429,32 @@
             double result = double.MaxValue;
             if (T > 1)
             {
-                Action<int, int> func = (t, T) =>
+                void F(object? obj)
                 {
-                    for (int i = t; i < Length; i += T)
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < Length; i += input.T)
                     {
-                        m.WaitOne();
-                        if (array[i] < result)
+                        if (m.WaitOne())
                         {
-                            result = array[i];
+                            if (array[i] < result)
+                            {
+                                result = array[i];
+                            }
+                            m.ReleaseMutex();
                         }
-                        m.ReleaseMutex();
                     }
-                };
-                List<Thread> threads = new List<Thread>();
+                }
+                List<Thread> threads = [];
                 for (int t = 0; t < T; t++)
                 {
-                    Thread thread = new Thread(() => func(t, T));
-                    thread.Start();
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
                     threads.Add(thread);
                 }
-                Parallel.ForEach(threads, thread => thread.Join());
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return result;
             }
             else
             {
@@ -729,8 +1465,8 @@
                         result = array[i];
                     }
                 }
+                return result;
             }
-            return result;
         }
 
         public double Max(int T = 1)
@@ -739,26 +1475,32 @@
             double result = double.MinValue;
             if (T > 1)
             {
-                Action<int, int> func = (t, T) =>
+                void F(object? obj)
                 {
-                    for (int i = t; i < Length; i += T)
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < Length; i += input.T)
                     {
-                        m.WaitOne();
-                        if (array[i] > result)
+                        if (m.WaitOne())
                         {
-                            result = array[i];
+                            if (array[i] > result)
+                            {
+                                result = array[i];
+                            }
+                            m.ReleaseMutex();
                         }
-                        m.ReleaseMutex();
                     }
-                };
-                List<Thread> threads = new List<Thread>();
+                }
+                List<Thread> threads = [];
                 for (int t = 0; t < T; t++)
                 {
-                    Thread thread = new Thread(() => func(t, T));
-                    thread.Start();
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
                     threads.Add(thread);
                 }
-                Parallel.ForEach(threads, thread => thread.Join());
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return result;
             }
             else
             {
@@ -769,8 +1511,8 @@
                         result = array[i];
                     }
                 }
+                return result;
             }
-            return result;
         }
 
         public double Median()
@@ -789,24 +1531,33 @@
         public Vector Pow(double scalar, int T = 1)
         {
             double[] result = new double[Length];
-            if (T > 1 || Length>=1000)
+            if (T > 1 || Length >= 1000)
             {
+                Mutex m = new();
                 T = T == 1 ? Environment.ProcessorCount : T;
-                Action<int, int> func = (t, T) =>
+                void F(object? obj)
                 {
-                    for (int i = t; i < Length; i += T)
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < Length; i += input.T)
                     {
-                        result[i] = System.Math.Pow(array[i], scalar);
+                        if (m.WaitOne())
+                        {
+                            result[i] = System.Math.Pow(array[i], scalar);
+                            m.ReleaseMutex();
+                        }
                     }
-                };
-                List<Thread> threads = new List<Thread>();
+                }
+                List<Thread> threads = [];
                 for (int t = 0; t < T; t++)
                 {
-                    Thread thread = new Thread(() => func(t, T));
-                    thread.Start();
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
                     threads.Add(thread);
                 }
-                Parallel.ForEach(threads, thread => thread.Join());
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
             else
             {
@@ -814,8 +1565,8 @@
                 {
                     result[i] = System.Math.Pow(array[i], scalar);
                 }
+                return new Vector(result);
             }
-            return new Vector(result);
         }
 
         public double Var(int T = 1)
@@ -834,7 +1585,7 @@
             {
                 throw new System.ArgumentException("Vectors must have the same length");
             }
-            return (this-Mean(T))*(v1-v1.Mean(T))/Length-1;
+            return (this - Mean(T)) * (v1 - v1.Mean(T)) / Length - 1;
         }
 
         public double Corr(Vector v1, int T = 1)
@@ -845,23 +1596,33 @@
         public Vector Apply(Func<double, double> func, int T = 1)
         {
             double[] result = new double[Length];
-            if (T > 1)
+            if (T > 1 || Length >= 1000)
             {
-                Action<int, int> func1 = (t, T) =>
+                Mutex m = new();
+                T = T == 1 ? Environment.ProcessorCount : T;
+                void F(object? obj)
                 {
-                    for (int i = t; i < Length; i += T)
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < Length; i += input.T)
                     {
-                        result[i] = func(array[i]);
+                        if (m.WaitOne())
+                        {
+                            result[i] = func(array[i]);
+                            m.ReleaseMutex();
+                        }
                     }
-                };
-                List<Thread> threads = new List<Thread>();
+                }
+                List<Thread> threads = [];
                 for (int t = 0; t < T; t++)
                 {
-                    Thread thread = new Thread(() => func1(t, T));
-                    thread.Start();
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
                     threads.Add(thread);
                 }
-                Parallel.ForEach(threads, thread => thread.Join());
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
             else
             {
@@ -869,37 +1630,46 @@
                 {
                     result[i] = func(array[i]);
                 }
+                return new Vector(result);
             }
-            return new Vector(result);
         }
 
-        public Vector Apply(Func<Vector,int,Vector> func, int T = 1)
+        public Vector Apply(Func<Vector, int, Vector> func, int T = 1)
         {
-            return func(this,T);
+            return func(this, T);
         }
 
-        public static Vector Random(int n,int T)
+        public static Vector Random(int n, int T)
         {
             Random random = new();
             double[] result = new double[n];
             if (T > 1 || n >= 1000)
             {
+                Mutex m = new();
                 T = T == 1 ? Environment.ProcessorCount : T;
-                Action<int, int> func = (t, T) =>
+                void F(object? obj)
                 {
-                    for (int i = t; i < n; i += T)
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < n; i += input.T)
                     {
-                        result[i] = random.NextDouble();
+                        if (m.WaitOne())
+                        {
+                            result[i] = random.NextDouble();
+                            m.ReleaseMutex();
+                        }
                     }
-                };
-                List<Thread> threads = new List<Thread>();
+                }
+                List<Thread> threads = [];
                 for (int t = 0; t < T; t++)
                 {
-                    Thread thread = new Thread(() => func(t, T));
-                    thread.Start();
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
                     threads.Add(thread);
                 }
-                Parallel.ForEach(threads, thread => thread.Join());
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
             else
             {
@@ -907,8 +1677,8 @@
                 {
                     result[i] = random.NextDouble();
                 }
+                return new Vector(result);
             }
-            return new Vector(result);
         }
 
         public static Vector Random(int n)
@@ -922,22 +1692,31 @@
             double[] result = new double[n];
             if (T > 1 || n >= 1000)
             {
-                T= T == 1 ? Environment.ProcessorCount : T;
-                Action<int, int> func = (t, T) =>
+                Mutex m = new();
+                T = T == 1 ? Environment.ProcessorCount : T;
+                void F(object? obj)
                 {
-                    for (int i = t; i < n; i += T)
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < n; i += input.T)
                     {
-                        result[i] = random.NextDouble() * (max - min) + min;
+                        if (m.WaitOne())
+                        {
+                            result[i] = random.NextDouble() * (max - min) + min;
+                            m.ReleaseMutex();
+                        }
                     }
-                };
-                List<Thread> threads = new List<Thread>();
+                }
+                List<Thread> threads = [];
                 for (int t = 0; t < T; t++)
                 {
-                    Thread thread = new Thread(() => func(t, T));
-                    thread.Start();
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
                     threads.Add(thread);
                 }
-                Parallel.ForEach(threads, thread => thread.Join());
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
             else
             {
@@ -945,8 +1724,8 @@
                 {
                     result[i] = random.NextDouble() * (max - min) + min;
                 }
+                return new Vector(result);
             }
-            return new Vector(result);
         }
 
         public static Vector Random(int n, double min, double max)
@@ -967,24 +1746,33 @@
         public static Vector Linspace(double start, double end, int n, int T)
         {
             double[] result = new double[n];
-            if (T > 1 || n>=1000)
+            if (T > 1 || n >= 1000)
             {
+                Mutex m = new();
                 T = T == 1 ? Environment.ProcessorCount : T;
-                Action<int, int> func = (t, T) =>
+                void F(object? obj)
                 {
-                    for (int i = t; i < n; i += T)
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < n; i += input.T)
                     {
-                        result[i] = start + i * (end - start) / (n - 1);
+                        if (m.WaitOne())
+                        {
+                            result[i] = start + i * (end - start) / (n - 1);
+                            m.ReleaseMutex();
+                        }
                     }
-                };
+                }
                 List<Thread> threads = [];
                 for (int t = 0; t < T; t++)
                 {
-                    Thread thread = new(() => func(t, T));
-                    thread.Start();
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
                     threads.Add(thread);
                 }
-                Parallel.ForEach(threads, thread => thread.Join());
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
             else
             {
@@ -992,8 +1780,8 @@
                 {
                     result[i] = start + i * (end - start) / (n - 1);
                 }
+                return new Vector(result);
             }
-            return new Vector(result);
         }
 
         public static Vector Linspace(double start, double end, int n)
@@ -1005,24 +1793,33 @@
         {
             int n = (int)((end - start) / step);
             double[] result = new double[n];
-            if (T > 1 || n>=1000)
+            if (T > 1 || n >= 1000)
             {
+                Mutex m = new();
                 T = T == 1 ? Environment.ProcessorCount : T;
-                Action<int, int> func = (t, T) =>
+                void F(object? obj)
                 {
-                    for (int i = t; i < result.Length; i += T)
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < result.Length; i += input.T)
                     {
-                        result[i] = start + i * step;
+                        if (m.WaitOne())
+                        {
+                            result[i] = start + i * step;
+                            m.ReleaseMutex();
+                        }
                     }
-                };
-                List<Thread> threads = new();
+                }
+                List<Thread> threads = [];
                 for (int t = 0; t < T; t++)
                 {
-                    Thread thread = new(() => func(t, T));
-                    thread.Start();
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
                     threads.Add(thread);
                 }
-                Parallel.ForEach(threads, thread => thread.Join());
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
             else
             {
@@ -1030,8 +1827,8 @@
                 {
                     result[i] = start + i * step;
                 }
+                return new Vector(result);
             }
-            return new Vector(result);
         }
 
         public static Vector Arange(double start, double end, double step)
@@ -1051,7 +1848,7 @@
 
         public static Vector Concat(List<Vector> vectors)
         {
-            List<double> result = new List<double>();
+            List<double> result = [];
             foreach (Vector v in vectors)
             {
                 result.AddRange(v.array);
@@ -1069,30 +1866,39 @@
             return new Vector(v1.array.Concat([scalar]).ToArray());
         }
 
-        public Vector Scale(int T=1)
+        public Vector Scale(int T = 1)
         {
             var sd = Sd(T);
             var mean = Mean(T);
             double[] result = new double[Length];
 
-            if (T > 1 || Length>=1000)
+            if (T > 1 || Length >= 1000)
             {
-                T=T== 1 ? Environment.ProcessorCount : T;
-                Action<int, int> func = (t, T) =>
+                Mutex m = new();
+                T = T == 1 ? Environment.ProcessorCount : T;
+                void F(object? obj)
                 {
-                    for (int i = t; i < Length; i += T)
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < Length; i += input.T)
                     {
-                        result[i] = (array[i] - mean) / sd;
+                        if (m.WaitOne())
+                        {
+                            result[i] = (array[i] - mean) / sd;
+                            m.ReleaseMutex();
+                        }
                     }
-                };
+                }
                 List<Thread> threads = [];
                 for (int t = 0; t < T; t++)
                 {
-                    Thread thread = new(() => func(t, T));
-                    thread.Start();
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
                     threads.Add(thread);
                 }
-                Parallel.ForEach(threads, thread => thread.Join());
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
             else
             {
@@ -1100,8 +1906,8 @@
                 {
                     result[i] = (array[i] - mean) / sd;
                 }
+                return new Vector(result);
             }
-            return new Vector(result);
         }
 
         public double First()
@@ -1109,38 +1915,48 @@
             return array[0];
         }
 
-        public double Last() { 
-            return array[Length-1];
+        public double Last()
+        {
+            return array[Length - 1];
         }
 
-        public Vector Where(bool[] index,int T=1)
+        public Vector Where(bool[] index, int T = 1)
         {
-            List<double> result =[];
-            if (index.Length!=Length)
+            List<double> result = [];
+            if (index.Length != Length)
             {
                 throw new ArgumentException("index must be the same size as the current vector");
             }
             if (T > 1 || Length >= 1000)
             {
+                Mutex m = new();
                 T = T == 1 ? Environment.ProcessorCount : T;
-                Action<int, int> func = (t, T) =>
+                void F(object? obj)
                 {
-                    for (int i = t; i < Length; i += T)
+                    Input input = (Input)obj!;
+                    for (int i = input.t; i < Length; i += input.T)
                     {
                         if (index[i])
                         {
-                            result.Add(array[i]);
+                            if (m.WaitOne())
+                            {
+                                result.Add(array[i]);
+                                m.ReleaseMutex();
+                            }
                         }
                     }
-                };
-                List<Thread> threads = new();
+                }
+                List<Thread> threads = [];
                 for (int t = 0; t < T; t++)
                 {
-                    Thread thread = new(() => func(t, T));
-                    thread.Start();
+                    Thread thread = new(start: F);
+                    thread.Start(new Input(t, T));
                     threads.Add(thread);
                 }
-                Parallel.ForEach(threads, thread => thread.Join());
+                threads.ForEach(t => t.Join());
+                m.Dispose();
+                Thread.Sleep(5000);
+                return new Vector(result);
             }
             else
             {
@@ -1151,9 +1967,8 @@
                         result.Add(array[i]);
                     }
                 }
+                return new Vector(result);
             }
-            return new Vector(result);
-
         }
     }
 }
