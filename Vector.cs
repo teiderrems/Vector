@@ -83,7 +83,7 @@
                         threads.Add(thread);
                     }
                     threads.ForEach(thread => thread.Join());
-                    Thread.Sleep(5000);
+                    //Thread.Sleep(500);
                     m.Dispose();
                     return new Vector(result);
                 }
@@ -138,7 +138,7 @@
                         threads.Add(thread);
                     }
                     threads.ForEach(thread => thread.Join());
-                    Thread.Sleep(5000);
+                    //Thread.Sleep(500);
                     m.Dispose();
                     return new Vector(result);
                 }
@@ -252,7 +252,7 @@
                         threads.Add(thread);
                     }
                     threads.ForEach(thread => thread.Join());
-                    Thread.Sleep(5000);
+                    //Thread.Sleep(500);
                     m.Dispose();
                 }
                 else
@@ -302,7 +302,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -348,7 +348,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -389,7 +389,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -430,7 +430,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -486,7 +486,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -531,7 +531,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -572,7 +572,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -627,7 +627,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return result;
             }
             else
@@ -668,7 +668,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -709,7 +709,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return result;
             }
             else
@@ -750,7 +750,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return result;
             }
             else
@@ -792,7 +792,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return result;
             }
             else
@@ -833,7 +833,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return result;
             }
             else
@@ -874,7 +874,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -973,7 +973,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -1021,7 +1021,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -1099,7 +1099,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return System.Math.Sqrt(result);
             }
             else
@@ -1153,7 +1153,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -1231,7 +1231,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -1290,7 +1290,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -1345,7 +1345,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -1405,7 +1405,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return result;
             }
             else
@@ -1453,7 +1453,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return result;
             }
             else
@@ -1499,7 +1499,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return result;
             }
             else
@@ -1556,7 +1556,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -1621,7 +1621,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -1668,7 +1668,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -1715,7 +1715,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -1771,7 +1771,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -1818,7 +1818,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -1897,7 +1897,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
@@ -1955,7 +1955,7 @@
                 }
                 threads.ForEach(t => t.Join());
                 m.Dispose();
-                Thread.Sleep(5000);
+                //Thread.Sleep(500);
                 return new Vector(result);
             }
             else
