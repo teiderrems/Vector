@@ -51,15 +51,19 @@
             }
         }
 
-        public Vector this[bool[] index, int T = 1]
+        public Vector this[params bool[] index]
         {
             get
             {
                 List<double> result = [];
-                if (T > 1 || Length >= 1000)
+                if (index.Length>=Length)
+                {
+                    throw new System.ArgumentException("Index out of range");
+                }
+                if (Length >= 1000)
                 {
                     Mutex m = new();
-                    T = T == 1 ? Environment.ProcessorCount : T;
+                    int T =  Environment.ProcessorCount-2-2;
                     void F(object? obj)
                     {
                         Input input = (Input)obj!;
@@ -110,7 +114,7 @@
                 if (T > 1 || end - start >= 1000)
                 {
                     Mutex m = new();
-                    T = T == 1 ? Environment.ProcessorCount : T;
+                    T = T == 1 ? Environment.ProcessorCount-2 : T;
                     void F(object? obj)
                     {
                         Input input = (Input)obj!;
@@ -216,14 +220,14 @@
             }
         }
 
-        public Vector this[int[] index, int T = 1]
+        public Vector this[params int[] index]
         {
             get
             {
                 List<double> result = [];
-                if (T > 1 || Length >= 1000)
+                if (Length >= 1000)
                 {
-                    T = T == 1 ? Environment.ProcessorCount : T;
+                    int T = Environment.ProcessorCount-2;
                     Mutex m = new();
                     void F(object? obj)
                     {
@@ -271,6 +275,23 @@
                 }
                 return new Vector(result);
             }
+            set
+            {
+                if (index.Length==value.Length)
+                { 
+                    for (int i = 0; i < index.Length; i++)
+                    {
+                        if (index[i]<Length)
+                        {
+                            array[index[i]] = value[index[i]];
+                        }
+                    }
+                }
+                else
+                {
+                    throw new System.ArgumentException("Index out of range");
+                }
+            }
         }
 
 
@@ -280,7 +301,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                int T = Environment.ProcessorCount;
+                int T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -326,7 +347,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                int T = Environment.ProcessorCount;
+                int T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -367,7 +388,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                int T = Environment.ProcessorCount;
+                int T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -408,7 +429,7 @@
             if (T > 1 || n >= 1000)
             {
                 Mutex m = new();
-                T = T == 1 ? Environment.ProcessorCount : T;
+                T = T == 1 ? Environment.ProcessorCount-2 : T;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -464,7 +485,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                int T = Environment.ProcessorCount;
+                int T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -509,7 +530,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                int T = Environment.ProcessorCount;
+                int T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -550,7 +571,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                int T = Environment.ProcessorCount;
+                int T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -605,7 +626,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                int T = Environment.ProcessorCount;
+                int T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -646,7 +667,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                int T = Environment.ProcessorCount;
+                int T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -687,7 +708,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                int T = Environment.ProcessorCount;
+                int T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -728,7 +749,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                int T = Environment.ProcessorCount;
+                int T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -770,7 +791,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                int T = Environment.ProcessorCount;
+                int T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -811,7 +832,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                int T = Environment.ProcessorCount;
+                int T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -852,7 +873,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                int T = Environment.ProcessorCount;
+                int T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -893,7 +914,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                int T = Environment.ProcessorCount;
+                int T = Environment.ProcessorCount-2;
                 void F(int t, int T)
                 {
                     for (int i = t; i < v1.Length; i += T)
@@ -948,7 +969,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                var T = Environment.ProcessorCount;
+                var T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -996,7 +1017,7 @@
             if (v1.Length >= 1000)
             {
                 Mutex m = new();
-                var T = Environment.ProcessorCount;
+                var T = Environment.ProcessorCount-2;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -1077,7 +1098,7 @@
             double result = 0;
             if (T > 1 || Length >= 1000)
             {
-                T = T == 1 ? Environment.ProcessorCount : T;
+                T = T == 1 ? Environment.ProcessorCount-2 : T;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -1128,7 +1149,7 @@
             if (T > 1 || Length >= 1000)
             {
                 Mutex m = new();
-                T = T == 1 ? Environment.ProcessorCount : T;
+                T = T == 1 ? Environment.ProcessorCount-2 : T;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -1313,7 +1334,7 @@
             List<double> result = [];
             if (T > 1 || Length >= 1000)
             {
-                T = T == 1 ? Environment.ProcessorCount : T;
+                T = T == 1 ? Environment.ProcessorCount-2 : T;
                 Mutex m = new();
                 void F(object? obj)
                 {
@@ -1383,7 +1404,7 @@
             double result = 0;
             if (T > 1 || Length >= 1000)
             {
-                T = T == 1 ? Environment.ProcessorCount : T;
+                T = T == 1 ? Environment.ProcessorCount-2 : T;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -1534,7 +1555,7 @@
             if (T > 1 || Length >= 1000)
             {
                 Mutex m = new();
-                T = T == 1 ? Environment.ProcessorCount : T;
+                T = T == 1 ? Environment.ProcessorCount-2 : T;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -1599,7 +1620,7 @@
             if (T > 1 || Length >= 1000)
             {
                 Mutex m = new();
-                T = T == 1 ? Environment.ProcessorCount : T;
+                T = T == 1 ? Environment.ProcessorCount-2 : T;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -1646,7 +1667,7 @@
             if (T > 1 || n >= 1000)
             {
                 Mutex m = new();
-                T = T == 1 ? Environment.ProcessorCount : T;
+                T = T == 1 ? Environment.ProcessorCount-2 : T;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -1693,7 +1714,7 @@
             if (T > 1 || n >= 1000)
             {
                 Mutex m = new();
-                T = T == 1 ? Environment.ProcessorCount : T;
+                T = T == 1 ? Environment.ProcessorCount-2 : T;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -1749,7 +1770,7 @@
             if (T > 1 || n >= 1000)
             {
                 Mutex m = new();
-                T = T == 1 ? Environment.ProcessorCount : T;
+                T = T == 1 ? Environment.ProcessorCount-2 : T;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -1796,7 +1817,7 @@
             if (T > 1 || n >= 1000)
             {
                 Mutex m = new();
-                T = T == 1 ? Environment.ProcessorCount : T;
+                T = T == 1 ? Environment.ProcessorCount-2 : T;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -1875,7 +1896,7 @@
             if (T > 1 || Length >= 1000)
             {
                 Mutex m = new();
-                T = T == 1 ? Environment.ProcessorCount : T;
+                T = T == 1 ? Environment.ProcessorCount-2 : T;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
@@ -1930,7 +1951,7 @@
             if (T > 1 || Length >= 1000)
             {
                 Mutex m = new();
-                T = T == 1 ? Environment.ProcessorCount : T;
+                T = T == 1 ? Environment.ProcessorCount-2 : T;
                 void F(object? obj)
                 {
                     Input input = (Input)obj!;
